@@ -2,31 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActiveInventory : MonoBehaviour
+public class ActiveInventory : Singleton<ActiveInventory>
 {
     private int activeSlotIndexNum = 0;
 
     private PlayerControls playerControls;
 
-    private void Awake() {
+    protected override void Awake()
+    {
+        base.Awake();
         playerControls = new PlayerControls();
     }
 
-    private void Start() {
+    private void Start()
+    {
         playerControls.Inventory.Keyboard.performed += ctx => ToggleActiveSlot((int)ctx.ReadValue<float>());
 
-        ToggleActiveHighlight(0);
     }
 
-    private void OnEnable() {
+    private void OnEnable()
+    {
         playerControls.Enable();
     }
+    public void EquipStartingWeapon()
+    {
+        ToggleActiveHighlight(0);
 
-    private void ToggleActiveSlot(int numValue) {
+    }
+
+    private void ToggleActiveSlot(int numValue)
+    {
         ToggleActiveHighlight(numValue - 1);
     }
 
-    private void ToggleActiveHighlight(int indexNum) {
+    private void ToggleActiveHighlight(int indexNum)
+    {
         activeSlotIndexNum = indexNum;
 
         foreach (Transform inventorySlot in this.transform)
@@ -39,8 +49,11 @@ public class ActiveInventory : MonoBehaviour
         ChangeActiveWeapon();
     }
 
-    private void ChangeActiveWeapon() {
-        if (ActiveWeapon.Instance.CurrentActiveWeapon != null) {
+    private void ChangeActiveWeapon()
+    {
+        if (PlayerHealth.Instance.IsDead) { return; }
+        if (ActiveWeapon.Instance.CurrentActiveWeapon != null)
+        {
             Destroy(ActiveWeapon.Instance.CurrentActiveWeapon.gameObject);
         }
 
@@ -48,8 +61,9 @@ public class ActiveInventory : MonoBehaviour
         InventorySlot inventorySlot = childTransform.GetComponentInChildren<InventorySlot>();
         WeaponInfo weaponInfo = inventorySlot.GetWeaponInfo();
         GameObject weaponToSpawn = weaponInfo.weaponPrefab;
-        
-        if (weaponInfo == null) {
+
+        if (weaponInfo == null)
+        {
             ActiveWeapon.Instance.WeaponNull();
             return;
         }
